@@ -1,0 +1,73 @@
+# SFX-MCP — Complete Reference
+
+## Overview
+
+SFX-MCP is a FastMCP 3.4+ server that provides programmatic access to
+FreeSound.org's database of CC0-licensed sound effects. It wraps the
+FreeSound API v2 with MCP tools for search, download, caching, and tagging.
+
+## Architecture
+
+```
+MCP Client (Claude/Cursor) ←→ FastMCP (stdio or HTTP SSE)
+                                    │
+                            ┌───────┴───────┐
+                            │               │
+                     FreeSound API    SQLite Cache
+                     (httpx)          (local)
+```
+
+### Files
+
+- `src/sfx_mcp/server.py` — FastMCP + FastAPI server setup
+- `src/sfx_mcp/config.py` — Configuration dataclass from env vars
+- `src/sfx_mcp/tools/sfx_search.py` — Main portmanteau tool
+- `src/sfx_mcp/tools/prefab_cards.py` — Prefab card for local cache
+- `src/sfx_mcp/services/freesound.py` — FreeSound API HTTP client
+- `src/sfx_mcp/services/cache.py` — SQLite cache layer
+- `run_server.py` — Dual-transport entry point
+
+## Configuration
+
+| Env Var | Default | Description |
+|---------|---------|-------------|
+| `FREESOUND_API_KEY` | — | Required. FreeSound API v2 key. |
+| `SFX_LOCAL_PATH` | `data/sounds` | Directory for downloaded sound files. |
+| `SFX_DB_PATH` | `data/sfx_cache.db` | SQLite database path. |
+| `MCP_PORT` | — | When set, runs in HTTP mode on this port. |
+| `MCP_HOST` | `127.0.0.1` | Bind address for HTTP mode. |
+
+## Tools Reference
+
+### sfx_search
+
+Consolidated portmanteau tool. Operation determines behavior:
+
+#### search
+Args: query (str), duration_max (int, default 30), tags (list[str]?), page (int, default 1)
+Returns paginated list of CC0 sounds from FreeSound.
+
+#### download
+Args: sound_id (int), destination (str?, default SFX_LOCAL_PATH)
+Downloads original file to local disk, records in cache.
+
+#### tag
+Args: sound_id (int), tag_name (str)
+Assigns a textual tag to a locally cached sound for organization.
+
+#### list_local
+Args: tag_filter (str?)
+Lists all cached sounds, optionally filtered by tag.
+
+#### describe
+Args: sound_id (int)
+Returns full metadata: name, description, duration, samplerate, tags, preview URL.
+
+### show_sfx_browser_card
+
+No arguments. Renders a Prefab UI card listing all locally cached sounds.
+
+## Rate Limiting
+
+FreeSound's free API tier allows ~20 requests per minute. The client
+self-limits to 18 req/min with automatic retry-and-backoff on 429 responses.

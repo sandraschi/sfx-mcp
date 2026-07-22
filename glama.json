@@ -1,0 +1,14 @@
+{
+  "id": "sfx-mcp",
+  "name": "SFX-MCP",
+  "description": "Search, download, and manage CC0-licensed sound effects from FreeSound.org via MCP tools",
+  "categories": ["media", "audio", "music"],
+  "version": "0.1.0",
+  "server": {
+    "transport": ["stdio", "http"],
+    "tools": [
+      { "name": "sfx_search", "description": "Portmanteau: search, download, tag, list_local, describe" },
+      { "name": "show_sfx_browser_card", "description": "Prefab card of locally cached sounds" }
+    ]
+  }
+}

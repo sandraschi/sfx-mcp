@@ -1,0 +1,11 @@
+# SFX-MCP
+
+> FastMCP 3.4+ server wrapping the FreeSound API for CC0-licensed sound effects search and download.
+
+## Quick links
+
+- [README.md](./README.md) — full documentation, setup, tool reference
+- [llms-full.txt](./llms-full.txt) — (optional) extended LLM documentation
+- [src/sfx_mcp/tools/sfx_search.py](./src/sfx_mcp/tools/sfx_search.py) — main portmanteau tool
+- [src/sfx_mcp/services/freesound.py](./src/sfx_mcp/services/freesound.py) — FreeSound HTTP client
+- [src/sfx_mcp/services/cache.py](./src/sfx_mcp/services/cache.py) — SQLite local cache
