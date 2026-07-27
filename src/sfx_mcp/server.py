@@ -8,8 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastmcp import FastMCP
 
 from .config import config
-from .services.cache import SoundCache
-from .services.freesound import FreeSoundAPI
+from .deps import get_cache, get_freesound
 from .tools import register_all_tools
 
 logger = logging.getLogger("sfx-mcp")
@@ -25,6 +24,10 @@ app = FastAPI(title="SFX-MCP", version="0.1.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "http://localhost:11116",
+        "http://127.0.0.1:11116",
+        "http://localhost:11117",
+        "http://127.0.0.1:11117",
         "http://localhost:11121",
         "http://127.0.0.1:11121",
         "http://tauri.localhost",
@@ -48,25 +51,6 @@ async def health():
     }
 
 
-freesound_api: FreeSoundAPI | None = None
-sound_cache: SoundCache | None = None
-
-
-def get_freesound() -> FreeSoundAPI:
-    global freesound_api
-    if freesound_api is None:
-        freesound_api = FreeSoundAPI(config.FREESOUND_API_KEY)
-    return freesound_api
-
-
-def get_cache() -> SoundCache:
-    global sound_cache
-    if sound_cache is None:
-        os.makedirs(os.path.dirname(config.SFX_DB_PATH) or ".", exist_ok=True)
-        sound_cache = SoundCache(config.SFX_DB_PATH)
-    return sound_cache
-
-
 def main():
     os.makedirs(config.SFX_LOCAL_PATH, exist_ok=True)
 
@@ -86,3 +70,8 @@ def main():
     else:
         logger.info("Starting SFX-MCP in stdio mode")
         mcp.run()
+
+
+from .api_sounds import router as sounds_router  # noqa: E402
+
+app.include_router(sounds_router, prefix="/api/sounds", tags=["sounds"])

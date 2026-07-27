@@ -8,7 +8,8 @@ import httpx
 from pydantic import Field
 
 from ..config import config
-from ..server import get_cache, get_freesound, mcp
+from ..deps import get_cache, get_freesound
+from ..server import mcp
 
 logger = logging.getLogger("sfx-mcp")
 
