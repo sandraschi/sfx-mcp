@@ -8,7 +8,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastmcp import FastMCP
 
 from .config import config
-from .deps import get_cache, get_freesound
 from .tools import register_all_tools
 
 logger = logging.getLogger("sfx-mcp")

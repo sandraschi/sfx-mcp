@@ -19,6 +19,8 @@ def main():
         host = os.environ.get("MCP_HOST", "127.0.0.1")
         import uvicorn
 
+        mcp_sse = mcp.http_app()
+        app.mount("/mcp", mcp_sse)
         uvicorn.run(app, host=host, port=int(port), log_level="info")
     else:
         mcp.run()

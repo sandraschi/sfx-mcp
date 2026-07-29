@@ -1,0 +1,12 @@
+## Session Context (sfx-mcp)
+
+FastMCP 3.4+ FreeSound sound effects server — search, download, tag, and browse CC0-licensed audio.
+
+**Before starting work:**
+1. Check available operations via `sfx_search` portmanteau (5 ops: search, download, tag, list_local, describe)
+2. Verify FREESOUND_API_KEY is set in .env
+3. Check local cache with `list_local`
+
+**At end of work:**
+- Run `ruff check src/` and `ruff format src/` before committing
+- Run `uv run pytest` if tests exist

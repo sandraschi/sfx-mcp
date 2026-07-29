@@ -90,9 +90,7 @@ class SoundCache:
                     (tag_filter.lower().strip(),),
                 ).fetchall()
             else:
-                rows = conn.execute(
-                    "SELECT * FROM sounds ORDER BY downloaded_at DESC"
-                ).fetchall()
+                rows = conn.execute("SELECT * FROM sounds ORDER BY downloaded_at DESC").fetchall()
             results = []
             for row in rows:
                 d = dict(row)
@@ -106,9 +104,7 @@ class SoundCache:
 
     def get_sound(self, sound_id: int) -> dict | None:
         with self._conn() as conn:
-            row = conn.execute(
-                "SELECT * FROM sounds WHERE id = ?", (sound_id,)
-            ).fetchone()
+            row = conn.execute("SELECT * FROM sounds WHERE id = ?", (sound_id,)).fetchone()
             if row is None:
                 return None
             d = dict(row)
@@ -121,7 +117,5 @@ class SoundCache:
 
     def sound_exists(self, sound_id: int) -> bool:
         with self._conn() as conn:
-            row = conn.execute(
-                "SELECT 1 FROM sounds WHERE id = ?", (sound_id,)
-            ).fetchone()
+            row = conn.execute("SELECT 1 FROM sounds WHERE id = ?", (sound_id,)).fetchone()
             return row is not None

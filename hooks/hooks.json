@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "SessionStart": [{
+      "matcher": "",
+      "hooks": [{
+        "type": "text",
+        "text": "## Session Context (sfx-mcp)\n\nYou have access to a FreeSound sound effects server with `sfx_search` portmanteau (5 ops: search, download, tag, list_local, describe) and `show_sfx_browser_card` for browsing cached sounds.\n\n**Before starting work:**\n1. Run `sfx_search(operation='list_local')` to check cached sounds\n2. FREESOUND_API_KEY must be in .env\n\n**At end of work:**\n- Tag downloaded sounds with `sfx_search(operation='tag')` for organization"
+      }]
+    }]
+  }
+}

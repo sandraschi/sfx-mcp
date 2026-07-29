@@ -66,9 +66,7 @@ class FreeSoundAPI:
                         "FreeSound API key is invalid or missing. "
                         "Set FREESOUND_API_KEY in .env or environment."
                     ) from e
-                raise RuntimeError(
-                    f"FreeSound API error {status}: {detail}"
-                ) from e
+                raise RuntimeError(f"FreeSound API error {status}: {detail}") from e
             except httpx.TimeoutException as e:
                 raise RuntimeError(
                     "FreeSound API request timed out. Check network connectivity."
@@ -88,7 +86,7 @@ class FreeSoundAPI:
         """
         params = {
             "query": query,
-            "filter": f"license:\"Creative Commons 0\" duration:[0 TO {duration_max}]",
+            "filter": f'license:"Creative Commons 0" duration:[0 TO {duration_max}]',
             "page": page,
             "page_size": min(page_size, 50),
             "fields": "id,name,description,duration,samplerate,tags,previews,url,download",

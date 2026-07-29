@@ -1,0 +1,6 @@
+{
+  "name": "sfx-mcp",
+  "version": "0.1.0",
+  "description": "FreeSound sound effects search and download via MCP",
+  "hooks": "../hooks/hooks.json"
+}

@@ -42,9 +42,7 @@ async def show_sfx_browser_card() -> dict:
         Heading(f"Local SFX Library ({len(sounds)} sounds)")
 
         if not sounds:
-            Text(
-                "No sounds downloaded yet. Search FreeSound first."
-            )
+            Text("No sounds downloaded yet. Search FreeSound first.")
         else:
             for s in sounds:
                 user_tags = s.get("user_tags", [])

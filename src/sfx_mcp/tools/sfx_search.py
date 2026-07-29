@@ -140,9 +140,7 @@ async def _handle_search(
                 "samplerate": s.get("samplerate"),
                 "tags": s.get("tags", []),
                 "preview": (
-                    s.get("previews", {}).get("preview-lq-mp3")
-                    if s.get("previews")
-                    else None
+                    s.get("previews", {}).get("preview-lq-mp3") if s.get("previews") else None
                 ),
                 "url": s.get("url"),
             }
@@ -161,9 +159,7 @@ async def _handle_search(
     }
 
 
-async def _handle_download(
-    api, cache, sound_id: int | None, destination: str | None
-) -> dict:
+async def _handle_download(api, cache, sound_id: int | None, destination: str | None) -> dict:
     if sound_id is None:
         return _error_response("sound_id is required for download", "validation")
 
@@ -181,9 +177,7 @@ async def _handle_download(
 
     download_url = await api.get_download_url(sound_id)
     if not download_url:
-        return _error_response(
-            "No download URL available for this sound", "api_error"
-        )
+        return _error_response("No download URL available for this sound", "api_error")
 
     async with httpx.AsyncClient(timeout=120.0) as dl_client:
         response = await dl_client.get(
@@ -219,9 +213,7 @@ async def _handle_download(
 
 def _handle_tag(cache, sound_id: int | None, tag_name: str | None) -> dict:
     if sound_id is None or not tag_name:
-        return _error_response(
-            "sound_id and tag_name are required for tag", "validation"
-        )
+        return _error_response("sound_id and tag_name are required for tag", "validation")
     if not cache.sound_exists(sound_id):
         return _error_response(
             f"Sound {sound_id} is not in the local cache. Download it first.",
@@ -263,9 +255,7 @@ async def _handle_describe(api, sound_id: int | None) -> dict:
             "type": detail.get("type"),
             "tags": detail.get("tags", []),
             "preview": (
-                detail.get("previews", {}).get("preview-lq-mp3")
-                if detail.get("previews")
-                else None
+                detail.get("previews", {}).get("preview-lq-mp3") if detail.get("previews") else None
             ),
             "url": detail.get("url"),
             "download_url": detail.get("download"),
