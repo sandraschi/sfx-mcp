@@ -30,7 +30,7 @@ def _error_response(error: str, error_type: str = "general", **kwargs) -> dict:
 @mcp.tool(annotations=_READ_ONLY)
 async def sfx_search(
     operation: Annotated[
-        Literal["search", "download", "tag", "list_local", "describe"],
+        Literal["search", "download", "tag", "list_local", "describe", "play"],
         Field(description="Operation to perform."),
     ],
     query: Annotated[
@@ -68,6 +68,10 @@ async def sfx_search(
         str | None,
         Field(description="Filter local cache by tag. Only for: list_local."),
     ] = None,
+    sound_path: Annotated[
+        str | None,
+        Field(description="Path to local sound file. Required for: play."),
+    ] = None,
 ) -> dict:
     """[RATIONALE] Consolidated portmanteau for all FreeSound operations —
     search, download, tag, list local cache, and describe metadata — to avoid
@@ -79,6 +83,7 @@ async def sfx_search(
     - tag: Assign a user-defined tag to a locally cached sound.
     - list_local: List all locally cached sounds, optionally filtered by tag.
     - describe: Get full metadata for a specific sound from FreeSound.
+    - play: Play a locally cached sound file using the system default player.
 
     ## Return Format
     {"success": bool, "message": str, "data": {...}}
@@ -87,6 +92,7 @@ async def sfx_search(
     sfx_search(operation="search", query="thunder", duration_max=30)
     sfx_search(operation="download", sound_id=12345)
     sfx_search(operation="list_local", tag_filter="sfx")
+    sfx_search(operation="play", sound_path="data/sounds/thunder.wav")
     """
     if not config.has_api_key:
         return _error_response(
@@ -112,6 +118,8 @@ async def sfx_search(
             return _handle_list_local(cache, tag_filter)
         elif operation == "describe":
             return await _handle_describe(api, sound_id)
+        elif operation == "play":
+            return _handle_play(sound_path)
         else:
             return _error_response(f"Unknown operation: {operation}", "validation")
     except RuntimeError as e:
@@ -261,3 +269,30 @@ async def _handle_describe(api, sound_id: int | None) -> dict:
             "download_url": detail.get("download"),
         },
     }
+
+
+def _handle_play(sound_path: str | None) -> dict:
+    if not sound_path:
+        return _error_response("sound_path is required for play", "validation")
+    if not os.path.isfile(sound_path):
+        return _error_response(f"Sound file not found: {sound_path}", "not_found")
+    try:
+        if os.name == "nt":
+            import winsound
+
+            _, ext = os.path.splitext(sound_path)
+            if ext.lower() == ".wav":
+                winsound.PlaySound(sound_path, winsound.SND_ASYNC)
+                return {
+                    "success": True,
+                    "message": f"Playing '{os.path.basename(sound_path)}' via winsound",
+                    "data": {"sound_path": sound_path, "player": "winsound"},
+                }
+        os.startfile(sound_path)
+        return {
+            "success": True,
+            "message": f"Opened '{os.path.basename(sound_path)}' in default system player",
+            "data": {"sound_path": sound_path, "player": "default"},
+        }
+    except Exception as e:
+        return _error_response(str(e), "playback_error")

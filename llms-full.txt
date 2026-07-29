@@ -63,6 +63,10 @@ Lists all cached sounds, optionally filtered by tag.
 Args: sound_id (int)
 Returns full metadata: name, description, duration, samplerate, tags, preview URL.
 
+#### play
+Args: sound_path (str)
+Plays a locally cached sound via the system default audio player (or winsound for .wav on Windows).
+
 ### show_sfx_browser_card
 
 No arguments. Renders a Prefab UI card listing all locally cached sounds.

@@ -55,6 +55,7 @@ uv run python run_server.py
 | `tag` | Assign a user tag to a cached sound (local SQLite). |
 | `list_local` | List all locally cached sounds, optionally filtered by tag. |
 | `describe` | Get full metadata for a sound (name, duration, samplerate, tags, preview URL). |
+| `play` | Play a locally cached sound file using the system default player or winsound (Windows). |
 
 ### `show_sfx_browser_card`
 

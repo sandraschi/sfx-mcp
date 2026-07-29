@@ -11,6 +11,7 @@ Single tool with 5 operations via `operation` parameter.
 | tag | Assign user tag to a cached sound. |
 | list_local | List cached sounds, optionally filtered by tag. |
 | describe | Full metadata: name, description, duration, samplerate, tags, preview URL. |
+| play | Play a local sound file via system default player or winsound (Windows .wav). |
 
 ## show_sfx_browser_card
 

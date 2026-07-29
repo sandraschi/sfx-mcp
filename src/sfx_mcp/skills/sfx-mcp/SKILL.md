@@ -15,6 +15,7 @@ FastMCP 3.4+ server wrapping the FreeSound API for CC0-licensed sound effects se
 | tag | Assign a user tag to a cached sound | sound_id, tag_name |
 | list_local | List locally cached sounds | tag_filter (optional) |
 | describe | Get full metadata for a sound | sound_id |
+| play | Play a locally cached sound file | sound_path |
 
 ### show_sfx_browser_card
 
