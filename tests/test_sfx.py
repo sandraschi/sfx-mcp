@@ -22,6 +22,10 @@ def test_has_api_key():
 
 
 def test_config_defaults_paths():
+    from pathlib import Path
+
     c = Config()
-    assert c.SFX_LOCAL_PATH == "data/sounds"
-    assert c.SFX_DB_PATH == "data/sfx_cache.db"
+    # Anchored at the repo root, not the CWD (BUG-063)
+    repo = Path(__file__).resolve().parents[1]
+    assert Path(c.SFX_LOCAL_PATH) == repo / "data" / "sounds"
+    assert Path(c.SFX_DB_PATH) == repo / "data" / "sfx_cache.db"
