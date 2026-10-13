@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import logging
 
-from ..server import get_cache, mcp
+from ..deps import get_cache
+from ..server import mcp
 
 logger = logging.getLogger("sfx-mcp")
 

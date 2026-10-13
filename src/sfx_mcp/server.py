@@ -2,12 +2,27 @@ from __future__ import annotations
 
 import logging
 import os
+import time
+from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, Response
+from fastapi.staticfiles import StaticFiles
 from fastmcp import FastMCP
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
 
+from .activity_log import (
+    clear_logs,
+    export_logs,
+    install_log_handler,
+    log_activity,
+    log_stats,
+    query_logs,
+)
 from .config import config
+from .tool_log_middleware import ToolActivityMiddleware
 from .tools import register_all_tools
 
 logger = logging.getLogger("sfx-mcp")
@@ -17,6 +32,7 @@ mcp = FastMCP(
     instructions="Search and download CC0-licensed sound effects from FreeSound.org",
     version="0.1.0",
 )
+mcp.add_middleware(ToolActivityMiddleware())
 
 app = FastAPI(title="SFX-MCP", version="0.1.0")
 
@@ -50,7 +66,123 @@ async def health():
     }
 
 
+@app.get("/", include_in_schema=False)
+async def root():
+    return HTMLResponse(
+        "<h1>sfx-mcp</h1>"
+        "<p>FreeSound CC0 sound effects: search, download, local library.</p>"
+        "<ul>"
+        '<li><a href="/api/health">/api/health</a></li>'
+        '<li><a href="/api/sounds/local">/api/sounds/local</a></li>'
+        '<li><a href="/api/logs">/api/logs</a></li>'
+        '<li><a href="/docs">/docs</a></li>'
+        "</ul>"
+    )
+
+
+@app.get("/api/tools")
+async def list_tools():
+    try:
+        tools = await mcp.list_tools()
+        items = [
+            {
+                "name": t.name,
+                "description": (t.description or "").splitlines()[0] if t.description else "",
+            }
+            for t in tools
+        ]
+    except Exception as e:
+        return {"tools": [], "count": 0, "error": str(e)}
+    return {"tools": items, "count": len(items)}
+
+
+@app.get("/api/logs")
+async def logs_query(
+    limit: int = Query(50, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    level: str | None = Query(None),
+    kind: str | None = Query(None),
+    search: str | None = Query(None),
+    sort: str = Query("desc"),
+    after_id: str | None = Query(None),
+):
+    order = "asc" if sort == "asc" else "desc"
+    return query_logs(
+        limit=limit,
+        offset=offset,
+        level=level,
+        kind=kind,
+        search=search,
+        sort=order,  # type: ignore[arg-type]
+        after_id=after_id,
+    )
+
+
+@app.get("/api/logs/stats")
+async def logs_stats():
+    return log_stats()
+
+
+@app.get("/api/logs/export")
+async def logs_export(
+    format: str = Query("json"),
+    level: str | None = Query(None),
+    kind: str | None = Query(None),
+    search: str | None = Query(None),
+    sort: str = Query("desc"),
+):
+    if format not in ("json", "csv"):
+        format = "json"
+    order = "asc" if sort == "asc" else "desc"
+    body, media_type, filename = export_logs(
+        format=format,
+        level=level,
+        kind=kind,
+        search=search,
+        sort=order,  # type: ignore[arg-type]
+    )
+    return Response(
+        content=body,
+        media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@app.delete("/api/logs")
+async def logs_clear():
+    clear_logs()
+    return {"success": True, "message": "Log buffer cleared."}
+
+
+class _LogMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):  # type: ignore[no-untyped-def]
+        start = time.monotonic()
+        status = 500
+        try:
+            response = await call_next(request)
+            status = response.status_code
+            return response
+        finally:
+            ms = int((time.monotonic() - start) * 1000)
+            level = "ERROR" if status >= 500 else ("WARNING" if status >= 400 else "INFO")
+            log_activity(
+                kind="http",
+                detail=f"{request.method} {request.url.path} -> {status} ({ms}ms)",
+                level=level,
+                meta={
+                    "method": request.method,
+                    "path": request.url.path,
+                    "status": status,
+                    "ms": ms,
+                },
+            )
+
+
+app.add_middleware(_LogMiddleware)
+
+
 def main():
+    install_log_handler()
     os.makedirs(config.SFX_LOCAL_PATH, exist_ok=True)
 
     register_all_tools(mcp)
@@ -74,3 +206,11 @@ def main():
 from .api_sounds import router as sounds_router  # noqa: E402
 
 app.include_router(sounds_router, prefix="/api/sounds", tags=["sounds"])
+
+_DIST = Path(__file__).resolve().parents[2] / "webapp" / "frontend" / "dist"
+if (_DIST / "index.html").is_file():
+    app.mount("/assets", StaticFiles(directory=str(_DIST / "assets")), name="assets")
+
+    @app.get("/{path:path}", include_in_schema=False)
+    async def spa_fallback(path: str):
+        return HTMLResponse((_DIST / "index.html").read_text(encoding="utf-8"))

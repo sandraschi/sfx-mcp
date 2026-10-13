@@ -73,8 +73,8 @@ async def sfx_search(
         Field(description="Path to local sound file. Required for: play."),
     ] = None,
 ) -> dict:
-    """[RATIONALE] Consolidated portmanteau for all FreeSound operations —
-    search, download, tag, list local cache, and describe metadata — to avoid
+    """[RATIONALE] Consolidated portmanteau for all FreeSound operations -
+    search, download, tag, list local cache, and describe metadata - to avoid
     tool explosion while keeping related sound-effect operations grouped.
 
     Operations:
