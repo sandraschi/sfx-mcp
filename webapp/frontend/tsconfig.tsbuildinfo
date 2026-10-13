@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/lib/api.ts","./src/pages/dashboard.tsx","./src/pages/help.tsx","./src/pages/library.tsx","./src/pages/logs.tsx","./src/pages/settingspage.tsx","./src/pages/sounds.tsx","./src/pages/tools.tsx"],"version":"5.6.3"}
