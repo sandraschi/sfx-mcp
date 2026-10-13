@@ -66,7 +66,19 @@ Prefab rich card showing all locally cached sounds with names, durations, and pa
 | Service | Port |
 |---------|------|
 | Backend (HTTP/MCP) | 11120 |
-| Frontend (reserved) | 11121 |
+| Frontend (Vite dev) | 11121 |
+
+## Webapp
+
+`webapp/frontend/` (React + Tailwind, `bun run dev` on 11121, proxies `/api` to
+11120; `bun run build` outputs to `webapp/frontend/dist/`, served by the backend
+with SPA fallback). Pages: Dashboard, Sounds (search + preview + cache), Library
+(local sounds, tag filter), Tools (live MCP inventory), Logs (standard ring
+buffer page), Settings, Help.
+
+Log buffer: ring buffer (`SFX_LOG_MAX_ENTRIES`, default 2000) behind
+`GET /api/logs` (+ `/stats`, `/export`, `DELETE /api/logs`). Tool calls log as
+`kind: tool_call` via FastMCP middleware — no per-tool edits.
 
 ## License
 
