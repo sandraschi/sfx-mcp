@@ -189,6 +189,29 @@ class _LogMiddleware(BaseHTTPMiddleware):
 app.add_middleware(_LogMiddleware)
 
 
+class _McpPathAlias:
+    """Accept /mcp as well as /mcp/ for the mounted MCP app.
+
+    Starlette's Mount matches /mcp/ but hands the child an empty path for
+    /mcp, so a POST to the documented URL came back 405 while /mcp/ worked.
+    Rewriting before routing fixes both spellings; a 307 would not help
+    because MCP clients do not follow redirects on POST.
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope.get("type") == "http" and scope.get("path") == "/mcp":
+            scope = dict(scope)
+            scope["path"] = "/mcp/"
+            scope["raw_path"] = b"/mcp/"
+        await self.app(scope, receive, send)
+
+
+app.add_middleware(_McpPathAlias)
+
+
 def main():
     install_log_handler()
     os.makedirs(config.SFX_LOCAL_PATH, exist_ok=True)

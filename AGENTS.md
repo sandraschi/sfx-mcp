@@ -7,7 +7,7 @@
 | Repo | `D:\Dev\repos\sfx-mcp` |
 | Backend port | 11120 (HTTP/MCP) |
 | Frontend port | 11121 (reserved) |
-| MCP endpoint | `http://127.0.0.1:11120/mcp/` (trailing slash required for POST) |
+| MCP endpoint | `http://127.0.0.1:11120/mcp` (both `/mcp` and `/mcp/` accepted) |
 | Health endpoint | `http://127.0.0.1:11120/api/health` |
 | Entry point | `sfx_mcp.__main__:main` |
 | Package manager | `uv` |

@@ -27,8 +27,8 @@ uv run python -m sfx_mcp
 # Or run in HTTP mode (for webapp integration)
 uv run python run_server.py
 # Listens on http://127.0.0.1:11120
-# MCP streamable-HTTP endpoint: http://127.0.0.1:11120/mcp/ (trailing slash:
-# without it, POST /mcp is answered with 405; the REST API stays on /api/*)
+# MCP streamable-HTTP endpoint: http://127.0.0.1:11120/mcp (both spellings work;
+# a path-alias middleware avoids the Mount 405; REST stays on /api/*)
 # Transports: stdio (default) | --serve | --stdio | --port N | MCP_PORT=N
 # Health check: http://127.0.0.1:11120/api/health
 ```
