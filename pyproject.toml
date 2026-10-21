@@ -30,5 +30,10 @@ target-version = "py312"
 select = ["E", "F", "I", "N", "W"]
 ignore = ["E501"]
 
+[dependency-groups]
+dev = [
+    "pytest-asyncio>=1.4.0",
+]
+
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "ruff>=0.16.0,<0.17"]
