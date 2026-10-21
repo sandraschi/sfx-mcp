@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
+import sys
 import time
 from pathlib import Path
 
@@ -34,7 +35,14 @@ mcp = FastMCP(
 )
 mcp.add_middleware(ToolActivityMiddleware())
 
-app = FastAPI(title="SFX-MCP", version="0.1.0")
+# Dual transport (fleet standard): stdio by default, streamable HTTP at /mcp.
+# mcp_app must be created before the FastAPI app so its lifespan can be passed
+# in at construction. Without that lifespan, HTTP requests reach the session
+# manager before it starts and every call fails with a 500. The path="/" plus
+# mount("/mcp") keeps the endpoint at exactly /mcp, matching SFX_MCP_URL.
+mcp_app = mcp.http_app(path="/")
+
+app = FastAPI(title="SFX-MCP", version="0.1.0", lifespan=mcp_app.lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -187,16 +195,22 @@ def main():
 
     register_all_tools(mcp)
 
+    argv = sys.argv[1:]
     port = os.environ.get("MCP_PORT") or os.environ.get("PORT")
+    if "--port" in argv:
+        index = argv.index("--port")
+        if index + 1 < len(argv):
+            port = argv[index + 1]
+    if "--stdio" in argv:
+        port = None
+    elif "--serve" in argv and not port:
+        port = "11120"
+
     if port:
         import uvicorn
 
         host = os.environ.get("MCP_HOST", "127.0.0.1")
-
-        mcp_sse = mcp.http_app()
-        app.mount("/mcp", mcp_sse)
-
-        logger.info("Starting SFX-MCP HTTP on %s:%s", host, port)
+        logger.info("Starting SFX-MCP HTTP on %s:%s (MCP endpoint /mcp)", host, port)
         uvicorn.run(app, host=host, port=int(port), log_level="info")
     else:
         logger.info("Starting SFX-MCP in stdio mode")
@@ -206,6 +220,9 @@ def main():
 from .api_sounds import router as sounds_router  # noqa: E402
 
 app.include_router(sounds_router, prefix="/api/sounds", tags=["sounds"])
+
+# Mount last: the MCP app owns /mcp, the REST routes above keep their paths.
+app.mount("/mcp", mcp_app)
 
 _DIST = Path(__file__).resolve().parents[2] / "webapp" / "frontend" / "dist"
 if (_DIST / "index.html").is_file():
